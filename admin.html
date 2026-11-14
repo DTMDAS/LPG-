@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LPG Gas - Admin Panel</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #eef2f5; padding: 15px; }
+        .header { background: #1d3557; color: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        h3 { color: #1d3557; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-primary { background: #1d3557; width: 100%; }
+        .btn-approve { background: #2a9d8f; margin-right: 5px; }
+        .btn-reject { background: #d90429; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; }
+        .badge { padding: 3px 7px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .pending { background: #fff3cd; color: #856404; }
+        .approved { background: #d4edda; color: #155724; }
+        .rejected { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h2>🔥 LPG Gas Admin Panel</h2>
+            <small>Manage QR, Users, Recharges & Withdrawals</small>
+        </div>
+        <a href="index.html" style="color:white; background:#d90429; padding:8px 12px; border-radius:6px; text-decoration:none; font-size:13px; font-weight:bold;">Go to Website</a>
+    </div>
+
+    <!-- QR & UPI Update Section -->
+    <div class="card">
+        <h3>1. Update Payment QR & UPI ID</h3>
+        <div class="input-group">
+            <label>Admin UPI ID (जिस पर पेमेंट आएगा)</label>
+            <input type="text" id="adminUpiInput" placeholder="example@upi">
+        </div>
+        <div class="input-group">
+            <label>QR Code Image Link (या नया QR अपलोड करें)</label>
+            <input type="text" id="adminQrUrlInput" placeholder="Image URL डालें या नीचे से फाइल चुनें">
+        </div>
+        <div class="input-group">
+            <label>Upload QR Image from Gallery</label>
+            <input type="file" accept="image/*" onchange="handleQrUpload(event)">
+        </div>
+        <button class="btn btn-primary" onclick="saveQrSettings()">Update QR & UPI Settings</button>
+    </div>
+
+    <!-- Recharge & Withdrawal Requests -->
+    <div class="card" style="overflow-x:auto;">
+        <h3>2. Recharge & Withdrawal Requests</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>User Name</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>UTR / UPI ID</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="txTableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Registered Users List -->
+    <div class="card" style="overflow-x:auto;">
+        <h3>3. Registered Users Log</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Mobile</th>
+                    <th>Password</th>
+                    <th>Balance</th>
+                    <th>Active Plans</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        window.onload = () => {
+            const qrData = JSON.parse(localStorage.getItem('lpg_admin_qr')) || { upiId: 'merchant@upi', qrUrl: '' };
+            document.getElementById('adminUpiInput').value = qrData.upiId;
+            document.getElementById('adminQrUrlInput').value = qrData.qrUrl;
+            loadTransactions();
+            loadUsers();
+        };
+
+        function handleQrUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('adminQrUrlInput').value = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function saveQrSettings() {
+            const upiId = document.getElementById('adminUpiInput').value.trim();
+            let qrUrl = document.getElementById('adminQrUrlInput').value.trim();
+            
+            if (!qrUrl && upiId) {
+                qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=${upiId}`;
+            }
+
+            localStorage.setItem('lpg_admin_qr', JSON.stringify({ upiId, qrUrl }));
+            alert('QR Code और UPI ID सफलतापूर्वक अपडेट हो गई है!');
+        }
+
+        function loadTransactions() {
+            const txs = JSON.parse(localStorage.getItem('lpg_txs')) || [];
+            const tbody = document.getElementById('txTableBody');
+            if (txs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No requests found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = txs.map(t => `
+                <tr>
+                    <td><b>${t.userName}</b><br><small>${t.userPhone}</small></td>
+                    <td><b style="color:${t.type === 'Recharge' ? 'green' : '#d90429'}">${t.type}</b></td>
+                    <td>₹${t.amount}</td>
+                    <td>${t.details}</td>
+                    <td><span class="badge ${t.status.toLowerCase()}">${t.status}</span></td>
+                    <td>
+                        ${t.status === 'Pending' ? `
+                            <button class="btn btn-approve" onclick="processTx(${t.id}, 'Approved')">Approve</button>
+                            <button class="btn btn-reject" onclick="processTx(${t.id}, 'Rejected')">Reject</button>
+                        ` : 'Done'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function processTx(txId, action) {
+            let txs = JSON.parse(localStorage.getItem('lpg_txs')) || [];
+            let users = JSON.parse(localStorage.getItem('lpg_users')) || [];
+
+            const txIndex = txs.findIndex(t => t.id === txId);
+            if (txIndex === -1) return;
+
+            const tx = txs[txIndex];
+            const userIndex = users.findIndex(u => u.phone === tx.userPhone);
+
+            if (action === 'Approved') {
+                if (tx.type === 'Recharge' && userIndex !== -1) {
+                    users[userIndex].balance += tx.amount;
+                }
+            } else if (action === 'Rejected') {
+                // Refund balance if withdrawal is rejected
+                if (tx.type === 'Withdraw' && userIndex !== -1) {
+                    users[userIndex].balance += tx.amount;
+                }
+            }
+
+            txs[txIndex].status = action;
+            localStorage.setItem('lpg_txs', JSON.stringify(txs));
+            localStorage.setItem('lpg_users', JSON.stringify(users));
+
+            loadTransactions();
+            loadUsers();
+            alert(`Request ${action}!`);
+        }
+
+        function loadUsers() {
+            const users = JSON.parse(localStorage.getItem('lpg_users')) || [];
+            const tbody = document.getElementById('usersTableBody');
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No users registered yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = users.map(u => `
+                <tr>
+                    <td><b>${u.name}</b></td>
+                    <td>${u.phone}</td>
+                    <td>${u.pass}</td>
+                    <td><b>₹${u.balance}</b></td>
+                    <td>${u.purchasedPlans.map(p => p.name).join(', ') || 'None'}</td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
