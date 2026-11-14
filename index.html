@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LPG Gas Energy - Investment Portal</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f4f8; color: #333; padding-bottom: 70px; }
+        
+        /* Header & Logo */
+        header { background: linear-gradient(135deg, #d90429, #ef233c); color: white; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; }
+        .logo-area { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { background: white; color: #d90429; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
+        
+        /* Auth Screen */
+        .auth-container { max-width: 400px; margin: 50px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .auth-container h2 { text-align: center; color: #d90429; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; }
+        .input-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; }
+        .btn { width: 100%; padding: 12px; background: #d90429; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn:hover { background: #b00321; }
+        .toggle-auth { text-align: center; margin-top: 15px; font-size: 14px; color: #555; cursor: pointer; }
+        .toggle-auth span { color: #d90429; font-weight: bold; }
+
+        /* Dashboard */
+        .container { max-width: 600px; margin: auto; padding: 15px; }
+        .wallet-card { background: linear-gradient(135deg, #1d3557, #457b9d); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .wallet-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .balance-amount { font-size: 32px; font-weight: bold; }
+        .wallet-actions { display: flex; gap: 10px; }
+        .wallet-actions button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-add { background: #2a9d8f; color: white; }
+        .btn-withdraw { background: #e9c46a; color: #1d3557; }
+
+        /* Tabs */
+        .tabs { display: flex; background: white; border-radius: 10px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .tab { flex: 1; padding: 12px; text-align: center; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab.active { border-bottom: 3px solid #d90429; color: #d90429; background: #fff5f5; }
+
+        /* Plans */
+        .plan-card { background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 5px solid #d90429; }
+        .plan-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background: #eee; padding: 5px; }
+        .plan-info { flex: 1; }
+        .plan-title { font-size: 18px; font-weight: bold; color: #1d3557; margin-bottom: 5px; }
+        .plan-details { font-size: 13px; color: #555; line-height: 1.5; }
+        .plan-details b { color: #000; }
+        .buy-btn { background: #d90429; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        .buy-btn:disabled { background: #999; cursor: not-allowed; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; }
+        .modal-content { background: white; width: 90%; max-width: 400px; padding: 20px; border-radius: 12px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .close-btn { position: absolute; right: 15px; top: 10px; font-size: 24px; cursor: pointer; color: #666; }
+        .upi-apps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+        .upi-btn { padding: 10px; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-weight: bold; font-size: 13px; text-decoration: none; color: #333; background: #f9f9f9; display: block; }
+        .qr-box { text-align: center; margin: 15px 0; }
+        .qr-box img { width: 180px; height: 180px; border: 2px solid #ddd; border-radius: 10px; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; z-index: 100; }
+        .nav-item { flex: 1; text-align: center; padding: 12px; font-size: 13px; font-weight: bold; color: #555; cursor: pointer; }
+        .nav-item.active { color: #d90429; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">🔥</div>
+            <div>
+                <h3 style="margin:0;">LPG GAS INDIA</h3>
+                <small style="font-size: 11px;">Clean Gas Energy</small>
+            </div>
+        </div>
+        <button id="logoutBtn" class="hidden" onclick="logout()" style="background:white; color:#d90429; border:none; padding:5px 10px; border-radius:5px; font-weight:bold; cursor:pointer;">Logout</button>
+    </header>
+
+    <!-- Auth Section -->
+    <div id="authSection" class="auth-container">
+        <h2 id="authTitle">LPG Gas Register</h2>
+        <div class="input-group" id="nameGroup">
+            <label>Full Name (पूरा नाम)</label>
+            <input type="text" id="regName" placeholder="अपना नाम दर्ज करें">
+        </div>
+        <div class="input-group">
+            <label>Mobile Number (मोबाइल नंबर)</label>
+            <input type="number" id="authPhone" placeholder="10 अंकों का नंबर">
+        </div>
+        <div class="input-group">
+            <label>Password (पासवर्ड)</label>
+            <input type="password" id="authPass" placeholder="पासवर्ड बनाएं">
+        </div>
+        <button class="btn" onclick="handleAuth()" id="authSubmitBtn">Register Now</button>
+        <div class="toggle-auth" onclick="toggleAuthMode()">
+            <p id="toggleText">पहले से अकाउंट है? <span>Login करें</span></p>
+        </div>
+    </div>
+
+    <!-- Main App Section -->
+    <div id="appSection" class="container hidden">
+        
+        <!-- Wallet Card -->
+        <div class="wallet-card">
+            <div class="wallet-top">
+                <div>
+                    <small>Welcome, <span id="userNameDisplay">User</span></small>
+                    <div class="balance-amount">₹<span id="userBalance">0</span></div>
+                    <small>Available Gas Wallet</small>
+                </div>
+                <div style="font-size: 40px;">🛢️</div>
+            </div>
+            <div class="wallet-actions">
+                <button class="btn-add" onclick="openModal('addMoneyModal')">+ Add Balance</button>
+                <button class="btn-withdraw" onclick="openModal('withdrawModal')">Withdraw</button>
+            </div>
+        </div>
+
+        <!-- Home Plans Tab -->
+        <div id="homeTab">
+            <div class="tabs">
+                <div class="tab active" id="tabDaily" onclick="switchPlanTab('daily')">LPG Daily Plans</div>
+                <div class="tab" id="tabHourly" onclick="switchPlanTab('hourly')">Gas Hourly Plans ⚡</div>
+            </div>
+
+            <div id="dailyPlansList"></div>
+            <div id="hourlyPlansList" class="hidden"></div>
+        </div>
+
+        <!-- Active Plans Tab -->
+        <div id="activeTab" class="hidden">
+            <h3 style="margin-bottom: 10px; color:#1d3557;">My Active Gas Plans</h3>
+            <div id="myActivePlans"></div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="historyTab" class="hidden">
+            <h3 style="margin-bottom: 10px; color:#1d3557;">Recharge & Withdrawal History</h3>
+            <div id="txHistoryList"></div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div id="bottomNav" class="bottom-nav hidden">
+        <div class="nav-item active" onclick="switchNav('home', this)">🏠 Gas Plans</div>
+        <div class="nav-item" onclick="switchNav('active', this)">🔥 Active Plans</div>
+        <div class="nav-item" onclick="switchNav('history', this)">📜 History</div>
+    </div>
+
+    <!-- Add Money Modal -->
+    <div id="addMoneyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('addMoneyModal')">&times;</span>
+            <h3 style="color:#d90429;">Add Gas Balance (Min ₹500)</h3>
+            <div class="input-group" style="margin-top:10px;">
+                <label>Amount (₹)</label>
+                <input type="number" id="addAmount" placeholder="Minimum 500" oninput="updateUPILinks()">
+            </div>
+            
+            <div class="qr-box">
+                <p style="font-size:12px; color:#555; margin-bottom:5px;">Scan QR or Click App Below</p>
+                <img id="displayQR" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=example@upi" alt="Payment QR">
+            </div>
+
+            <div class="upi-apps">
+                <a id="gpayLink" href="#" class="upi-btn">GPay</a>
+                <a id="phonepeLink" href="#" class="upi-btn">PhonePe</a>
+                <a id="paytmLink" href="#" class="upi-btn">Paytm</a>
+            </div>
+
+            <div class="input-group">
+                <label>12-Digit UTR / Ref Number</label>
+                <input type="text" id="utrNumber" placeholder="पेमेंट के बाद UTR नंबर डालें">
+            </div>
+            <button class="btn" onclick="submitRecharge()">Submit Recharge Request</button>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div id="withdrawModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('withdrawModal')">&times;</span>
+            <h3 style="color:#1d3557;">Withdraw Gas Profit</h3>
+            <p style="font-size:12px; color:#d90429; margin-bottom:10px;">Min Withdraw: ₹300 | GST: 2% Applicable</p>
+            
+            <div class="input-group">
+                <label>Amount (₹)</label>
+                <input type="number" id="withdrawAmount" placeholder="Enter amount (Min 300)" oninput="calcGST()">
+                <small id="gstCalcText" style="color:green; font-weight:bold;"></small>
+            </div>
+            <div class="input-group">
+                <label>Your UPI ID (Direct Transfer)</label>
+                <input type="text" id="withdrawUpi" placeholder="example@ybl / example@okicici">
+            </div>
+            <button class="btn" onclick="submitWithdraw()">Withdraw Now</button>
+        </div>
+    </div>
+
+    <script>
+        // LPG Cylinder & Gas Appliance Images (SVG Data URIs for reliable offline/online display)
+        const cylinderImg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='30' y='25' width='40' height='60' rx='10' fill='%23d90429'/><rect x='38' y='12' width='24' height='15' rx='3' fill='none' stroke='%23d90429' stroke-width='4'/><rect x='45' y='18' width='10' height='7' fill='%23333'/><text x='50' y='60' font-size='14' fill='white' font-weight='bold' text-anchor='middle'>LPG</text></svg>";
+        const stoveImg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='15' y='55' width='70' height='20' rx='4' fill='%23333'/><circle cx='35' cy='50' r='10' fill='%23555'/><circle cx='65' cy='50' r='10' fill='%23555'/><path d='M35 30 Q40 40 35 45 Q30 40 35 30' fill='%23ff9f1c'/><path d='M65 30 Q70 40 65 45 Q60 40 65 30' fill='%23ff9f1c'/><text x='50' y='70' font-size='10' fill='white' text-anchor='middle'>GAS STOVE</text></svg>";
+
+        // Plans Configuration
+        const dailyPlans = [
+            { id: 'd1', name: 'LPG Gas Plan 1', price: 2250, daily: 150, days: 30, total: 4500 },
+            { id: 'd2', name: 'LPG Gas Plan 2', price: 3000, daily: 210, days: 30, total: 6300 },
+            { id: 'd3', name: 'LPG Gas Plan 3', price: 4000, daily: 290, days: 30, total: 8700 },
+            { id: 'd4', name: 'LPG Gas Plan 4', price: 5000, daily: 380, days: 30, total: 11400 },
+            { id: 'd5', name: 'LPG Gas Plan 5', price: 5500, daily: 430, days: 30, total: 12900 },
+            { id: 'd6', name: 'LPG Gas Plan 6', price: 6000, daily: 500, days: 30, total: 15000 }
+        ];
+
+        const hourlyPlans = [
+            { id: 'h1', name: 'Gas Hourly Plan 1', price: 800, profit: 200, hours: 1, total: 1000 },
+            { id: 'h2', name: 'Gas Hourly Plan 2', price: 1200, profit: 200, hours: 1, total: 1400 },
+            { id: 'h3', name: 'Gas Hourly Plan 3', price: 1800, profit: 200, hours: 1, total: 2000 }
+        ];
+
+        let isRegisterMode = true;
+        let currentUser = null;
+
+        // Initialize Storage
+        if (!localStorage.getItem('lpg_users')) localStorage.setItem('lpg_users', JSON.stringify([]));
+        if (!localStorage.getItem('lpg_txs')) localStorage.setItem('lpg_txs', JSON.stringify([]));
+        if (!localStorage.getItem('lpg_admin_qr')) {
+            localStorage.setItem('lpg_admin_qr', JSON.stringify({
+                upiId: 'merchant@upi',
+                qrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=merchant@upi'
+            }));
+        }
+
+        // Check Logged In User
+        window.onload = () => {
+            const savedPhone = localStorage.getItem('lpg_current_user');
+            if (savedPhone) {
+                const users = JSON.parse(localStorage.getItem('lpg_users'));
+                currentUser = users.find(u => u.phone === savedPhone);
+                if (currentUser) showDashboard();
+            }
+        };
+
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authTitle').innerText = isRegisterMode ? 'LPG Gas Register' : 'LPG Gas Login';
+            document.getElementById('nameGroup').style.display = isRegisterMode ? 'block' : 'none';
+            document.getElementById('authSubmitBtn').innerText = isRegisterMode ? 'Register Now' : 'Login Now';
+            document.getElementById('toggleText').innerHTML = isRegisterMode ? 'पहले से अकाउंट है? <span>Login करें</span>' : 'नया अकाउंट बनाएं? <span>Register करें</span>';
+        }
+
+        function handleAuth() {
+            const name = document.getElementById('regName').value.trim();
+            const phone = document.getElementById('authPhone').value.trim();
+            const pass = document.getElementById('authPass').value.trim();
+
+            if (!phone || !pass || (isRegisterMode && !name)) {
+                alert('कृपया सभी जानकारी भरें!');
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('lpg_users'));
+
+            if (isRegisterMode) {
+                if (users.find(u => u.phone === phone)) {
+                    alert('यह नंबर पहले से रजिस्टर है! कृपया Login करें।');
+                    return;
+                }
+                const newUser = { name, phone, pass, balance: 0, purchasedPlans: [] };
+                users.push(newUser);
+                localStorage.setItem('lpg_users', JSON.stringify(users));
+                currentUser = newUser;
+                localStorage.setItem('lpg_current_user', phone);
+                alert('Registration Successful!');
+                showDashboard();
+            } else {
+                const user = users.find(u => u.phone === phone && u.pass === pass);
+                if (!user) {
+                    alert('गलत मोबाइल नंबर या पासवर्ड!');
+                    return;
+                }
+                currentUser = user;
+                localStorage.setItem('lpg_current_user', phone);
+                showDashboard();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('lpg_current_user');
+            location.reload();
+        }
+
+        function saveUserData() {
+            let users = JSON.parse(localStorage.getItem('lpg_users'));
+            const idx = users.findIndex(u => u.phone === currentUser.phone);
+            if (idx !== -1) {
+                users[idx] = currentUser;
+                localStorage.setItem('lpg_users', JSON.stringify(users));
+            }
+            document.getElementById('userBalance').innerText = currentUser.balance;
+        }
+
+        function showDashboard() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('appSection').classList.remove('hidden');
+            document.getElementById('bottomNav').classList.remove('hidden');
+            document.getElementById('logoutBtn').classList.remove('hidden');
+
+            document.getElementById('userNameDisplay').innerText = currentUser.name;
+            document.getElementById('userBalance').innerText = currentUser.balance;
+
+            // Load QR from Admin Settings
+            const adminQR = JSON.parse(localStorage.getItem('lpg_admin_qr'));
+            document.getElementById('displayQR').src = adminQR.qrUrl;
+
+            renderPlans();
+            renderActivePlans();
+            renderHistory();
+        }
+
+        function renderPlans() {
+            // Render Daily Plans
+            const dailyContainer = document.getElementById('dailyPlansList');
+            dailyContainer.innerHTML = dailyPlans.map(p => {
+                const alreadyBought = currentUser.purchasedPlans.some(up => up.planId === p.id);
+                return `
+                <div class="plan-card">
+                    <img src="${cylinderImg}" class="plan-img" alt="LPG Cylinder">
+                    <div class="plan-info">
+                        <div class="plan-title">${p.name}</div>
+                        <div class="plan-details">
+                            Price: <b>₹${p.price}</b> | Daily Income: <b>₹${p.daily}</b><br>
+                            Validity: <b>${p.days} Days</b> | Total Return: <b style="color:green;">₹${p.total}</b>
+                        </div>
+                        <button class="buy-btn" ${alreadyBought ? 'disabled' : ''} onclick="buyDailyPlan('${p.id}')">
+                            ${alreadyBought ? 'Purchased (1 Time Only)' : 'Buy Gas Plan'}
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // Render Hourly Plans
+            const hourlyContainer = document.getElementById('hourlyPlansList');
+            const hasAnyDailyPlan = currentUser.purchasedPlans.some(up => up.type === 'daily');
+
+            hourlyContainer.innerHTML = hourlyPlans.map(p => {
+                const alreadyBought = currentUser.purchasedPlans.some(up => up.planId === p.id);
+                return `
+                <div class="plan-card" style="border-left-color: #ff9f1c;">
+                    <img src="${stoveImg}" class="plan-img" alt="Gas Stove">
+                    <div class="plan-info">
+                        <div class="plan-title">${p.name} ⚡</div>
+                        <div class="plan-details">
+                            Price: <b>₹${p.price}</b> | Time: <b>1 Hour</b><br>
+                            1 Hour Profit: <b>+₹${p.profit}</b> | Total Return: <b style="color:green;">₹${p.total}</b>
+                        </div>
+                        <button class="buy-btn" style="background:#ff9f1c; color:#000;" ${alreadyBought ? 'disabled' : ''} onclick="buyHourlyPlan('${p.id}', ${hasAnyDailyPlan})">
+                            ${alreadyBought ? 'Purchased (1 Time Only)' : 'Buy Hourly Plan'}
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function buyDailyPlan(planId) {
+            const plan = dailyPlans.find(p => p.id === planId);
+            if (currentUser.balance < plan.price) {
+                alert('Insufficient Balance! कृपया पहले Add Balance करें।');
+                openModal('addMoneyModal');
+                return;
+            }
+            currentUser.balance -= plan.price;
+            currentUser.purchasedPlans.push({
+                planId: plan.id,
+                name: plan.name,
+                type: 'daily',
+                price: plan.price,
+                returnInfo: `₹${plan.daily}/day (Total ₹${plan.total})`,
+                buyTime: new Date().toLocaleString()
+            });
+            saveUserData();
+            renderPlans();
+            renderActivePlans();
+            alert(`${plan.name} सफलतापूर्वक खरीद लिया गया है!`);
+        }
+
+        function buyHourlyPlan(planId, hasAnyDailyPlan) {
+            if (!hasAnyDailyPlan) {
+                alert('यह Hourly Plan खरीदने के लिए पहले कोई एक Normal LPG Daily Plan लेना अनिवार्य है!');
+                switchPlanTab('daily');
+                return;
+            }
+            const plan = hourlyPlans.find(p => p.id === planId);
+            if (currentUser.balance < plan.price) {
+                alert('Insufficient Balance! कृपया पहले Add Balance करें।');
+                openModal('addMoneyModal');
+                return;
+            }
+            currentUser.balance -= plan.price;
+            currentUser.purchasedPlans.push({
+                planId: plan.id,
+                name: plan.name,
+                type: 'hourly',
+                price: plan.price,
+                returnInfo: `1 Hour में ₹${plan.total} (₹${plan.profit} Profit)`,
+                buyTime: new Date().toLocaleString()
+            });
+            saveUserData();
+            renderPlans();
+            renderActivePlans();
+            alert(`${plan.name} एक्टिव हो गया है! 1 घंटे बाद ₹${plan.total} मिल जाएंगे।`);
+        }
+
+        function renderActivePlans() {
+            const container = document.getElementById('myActivePlans');
+            if (currentUser.purchasedPlans.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#777; margin-top:20px;">अभी कोई एक्टिव गैस प्लान नहीं है।</p>';
+                return;
+            }
+            container.innerHTML = currentUser.purchasedPlans.map(p => `
+                <div class="plan-card" style="border-left-color: ${p.type === 'hourly' ? '#ff9f1c' : '#2a9d8f'};">
+                    <img src="${p.type === 'hourly' ? stoveImg : cylinderImg}" class="plan-img">
+                    <div class="plan-info">
+                        <span style="background:${p.type === 'hourly' ? '#ff9f1c' : '#2a9d8f'}; color:white; padding:2px 8px; border-radius:4px; font-size:11px;">
+                            ${p.type === 'hourly' ? 'HOURLY ACTIVE' : 'DAILY ACTIVE'}
+                        </span>
+                        <div class="plan-title" style="margin-top:5px;">${p.name}</div>
+                        <div class="plan-details">
+                            Invested: <b>₹${p.price}</b><br>
+                            Return: <b>${p.returnInfo}</b><br>
+                            Time: ${p.buyTime}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function switchPlanTab(type) {
+            document.getElementById('tabDaily').classList.toggle('active', type === 'daily');
+            document.getElementById('tabHourly').classList.toggle('active', type === 'hourly');
+            document.getElementById('dailyPlansList').classList.toggle('hidden', type !== 'daily');
+            document.getElementById('hourlyPlansList').classList.toggle('hidden', type !== 'hourly');
+        }
+
+        function switchNav(tab, el) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('homeTab').classList.toggle('hidden', tab !== 'home');
+            document.getElementById('activeTab').classList.toggle('hidden', tab !== 'active');
+            document.getElementById('historyTab').classList.toggle('hidden', tab !== 'history');
+            if(tab === 'history') renderHistory();
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function updateUPILinks() {
+            const amt = document.getElementById('addAmount').value || 500;
+            const adminQR = JSON.parse(localStorage.getItem('lpg_admin_qr'));
+            const upi = adminQR.upiId;
+            const uri = `upi://pay?pa=${upi}&pn=LPGGasIndia&am=${amt}&cu=INR`;
+            
+            document.getElementById('gpayLink').href = uri;
+            document.getElementById('phonepeLink').href = uri;
+            document.getElementById('paytmLink').href = uri;
+        }
+
+        function submitRecharge() {
+            const amt = parseFloat(document.getElementById('addAmount').value);
+            const utr = document.getElementById('utrNumber').value.trim();
+
+            if (!amt || amt < 500) {
+                alert('Minimum Add Balance ₹500 है!');
+                return;
+            }
+            if (!utr) {
+                alert('कृपया पेमेंट करने के बाद UTR नंबर दर्ज करें!');
+                return;
+            }
+
+            let txs = JSON.parse(localStorage.getItem('lpg_txs'));
+            txs.unshift({
+                id: Date.now(),
+                userName: currentUser.name,
+                userPhone: currentUser.phone,
+                type: 'Recharge',
+                amount: amt,
+                details: 'UTR: ' + utr,
+                status: 'Pending',
+                date: new Date().toLocaleString()
+            });
+            localStorage.setItem('lpg_txs', JSON.stringify(txs));
+            closeModal('addMoneyModal');
+            document.getElementById('addAmount').value = '';
+            document.getElementById('utrNumber').value = '';
+            renderHistory();
+            alert('Recharge Request भेज दी गई है! Admin Approval के बाद बैलेंस जुड़ जाएगा।');
+        }
+
+        function calcGST() {
+            const amt = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+            const gst = amt * 0.02;
+            const finalAmt = amt - gst;
+            document.getElementById('gstCalcText').innerText = amt >= 300 ? `2% GST: ₹${gst.toFixed(2)} | Bank में मिलेगा: ₹${finalAmt.toFixed(2)}` : '';
+        }
+
+        function submitWithdraw() {
+            const amt = parseFloat(document.getElementById('withdrawAmount').value);
+            const upi = document.getElementById('withdrawUpi').value.trim();
+
+            if (!amt || amt < 300) {
+                alert('Minimum Withdrawal ₹300 है!');
+                return;
+            }
+            if (amt > currentUser.balance) {
+                alert('आपके वॉलेट में पर्याप्त बैलेंस नहीं है!');
+                return;
+            }
+            if (!upi) {
+                alert('कृपया अपनी सही UPI ID दर्ज करें!');
+                return;
+            }
+
+            const gst = amt * 0.02;
+            const finalAmt = amt - gst;
+
+            currentUser.balance -= amt;
+            saveUserData();
+
+            let txs = JSON.parse(localStorage.getItem('lpg_txs'));
+            txs.unshift({
+                id: Date.now(),
+                userName: currentUser.name,
+                userPhone: currentUser.phone,
+                type: 'Withdraw',
+                amount: amt,
+                finalAmount: finalAmt,
+                details: `UPI: ${upi} (After 2% GST: ₹${finalAmt})`,
+                status: 'Pending',
+                date: new Date().toLocaleString()
+            });
+            localStorage.setItem('lpg_txs', JSON.stringify(txs));
+            closeModal('withdrawModal');
+            document.getElementById('withdrawAmount').value = '';
+            document.getElementById('withdrawUpi').value = '';
+            renderHistory();
+            alert('Withdrawal Request सबमिट हो गई है!');
+        }
+
+        function renderHistory() {
+            const txs = JSON.parse(localStorage.getItem('lpg_txs')).filter(t => t.userPhone === currentUser.phone);
+            const container = document.getElementById('txHistoryList');
+            if (txs.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#777;">कोई ट्रांजेक्शन नहीं मिला।</p>';
+                return;
+            }
+            container.innerHTML = txs.map(t => `
+                <div style="background:white; padding:12px; border-radius:8px; margin-bottom:10px; box-shadow:0 1px 4px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <b>${t.type} - ₹${t.amount}</b><br>
+                        <small style="color:#555;">${t.details}</small><br>
+                        <small style="color:#888; font-size:11px;">${t.date}</small>
+                    </div>
+                    <span style="padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold; background:${t.status === 'Approved' ? '#d4edda' : t.status === 'Rejected' ? '#f8d7da' : '#fff3cd'}; color:${t.status === 'Approved' ? '#155724' : t.status === 'Rejected' ? '#721c24' : '#856404'};">
+                        ${t.status}
+                    </span>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
