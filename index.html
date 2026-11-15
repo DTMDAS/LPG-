@@ -1,104 +1,289 @@
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LPG Gas Energy - Portal</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="firebase-config.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 20px; }
-        .box { max-width: 400px; background: white; padding: 20px; margin: 50px auto; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #d90429; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        .hidden { display: none !important; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LPG GAS INDIA</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;font-family:Arial,sans-serif;
+ background:#f1f5f3;color:#18352b
+}
+header{
+ background:#103c2c;color:white;padding:18px;
+ display:flex;justify-content:space-between;
+ align-items:center;font-weight:bold
+}
+button{
+ border:0;padding:12px 17px;border-radius:9px;
+ cursor:pointer;font-weight:bold;background:#13834e;
+ color:white
+}
+input{
+ width:100%;padding:13px;margin:7px 0;
+ border:1px solid #ccd8d0;border-radius:8px;
+ font-size:15px
+}
+.container{max-width:950px;margin:20px auto;padding:12px}
+.card{
+ background:white;padding:19px;margin:13px 0;
+ border-radius:14px;box-shadow:0 3px 12px #0000000c
+}
+.hidden{display:none}
+.wallet{
+ background:linear-gradient(130deg,#105438,#18865a);
+ color:white;border-radius:16px;padding:23px
+}
+.balance{font-size:32px;font-weight:bold;margin:10px 0}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}
+.tabs button{flex:1}
+.plan{
+ display:flex;align-items:center;gap:15px
+}
+.gas{font-size:42px}
+.price{font-size:22px;font-weight:bold;color:#13834e}
+.small{color:#718078;font-size:13px}
+.danger{background:#bd4242}
+.dark{background:#244238}
+h2{margin-top:5px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+</style>
 </head>
 <body>
 
-    <div id="authBox" class="box">
-        <h2 id="formTitle" style="color: #d90429; text-align: center;">Register</h2>
-        <input type="text" id="name" placeholder="Full Name">
-        <input type="number" id="phone" placeholder="Mobile Number">
-        <input type="password" id="pass" placeholder="Password">
-        <button onclick="submitData()" id="btnText">Register Now</button>
-        <p style="text-align: center; cursor: pointer; color: blue; margin-top: 15px;" onclick="toggleMode()">Already have an account? Login</p>
-    </div>
+<header>
+ <span>🔥 LPG GAS INDIA</span>
+ <button id="logout" class="danger hidden" onclick="logout()">Logout</button>
+</header>
 
-    <div id="dashboard" class="box hidden">
-        <h2>Welcome, <span id="displayName"></span></h2>
-        <h3>Balance: ₹<span id="displayBal">0</span></h3>
-        <button onclick="logout()" style="background: #333;">Logout</button>
-    </div>
+<div class="container">
 
-    <script>
-        let isReg = true;
+<!-- AUTH -->
+<div id="auth" class="card">
+ <h2>🔥 Welcome To LPG GAS INDIA</h2>
+ <div class="tabs">
+  <button onclick="showAuth('register')">Register</button>
+  <button class="dark" onclick="showAuth('login')">Login</button>
+ </div>
+ <div id="register">
+  <h3>Create Account</h3>
+  <input id="regName" placeholder="Full Name">
+  <input id="regMobile" placeholder="Mobile Number" maxlength="10">
+  <input id="regPass" type="password" placeholder="Password">
+  <button onclick="register()">Create Account</button>
+ </div>
+ <div id="login" class="hidden">
+  <h3>User Login</h3>
+  <input id="loginMobile" placeholder="Mobile Number">
+  <input id="loginPass" type="password" placeholder="Password">
+  <button onclick="login()">Login Now</button>
+ </div>
+ <p class="small">Demo website: केवल परीक्षण के लिए।</p>
+</div>
 
-        window.onload = function() {
-            let savedPhone = localStorage.getItem('user_phone');
-            if(savedPhone) {
-                db.ref('users/' + savedPhone).once('value', snapshot => {
-                    if(snapshot.exists()) {
-                        showApp(snapshot.val());
-                    }
-                });
-            }
-        };
+<!-- USER DASHBOARD -->
+<div id="dashboard" class="hidden">
+ <h2 id="welcome">Welcome</h2>
+ <div class="wallet">
+  Available Demo Wallet
+  <div class="balance" id="balance">₹0</div>
+  <button onclick="addDemo()">+ Add Demo Balance</button>
+  <button class="dark" onclick="withdrawDemo()">Withdraw Demo</button>
+ </div>
 
-        function toggleMode() {
-            isReg = !isReg;
-            document.getElementById('formTitle').innerText = isReg ? 'Register' : 'Login';
-            document.getElementById('btnText').innerText = isReg ? 'Register Now' : 'Login Now';
-            document.getElementById('name').style.display = isReg ? 'block' : 'none';
-        }
+ <div class="tabs">
+  <button onclick="showPlans('daily')">🛢️ Daily Plans</button>
+  <button onclick="showPlans('hourly')">⚡ Hourly Plans</button>
+ </div>
 
-        function submitData() {
-            let name = document.getElementById('name').value.trim();
-            let phone = document.getElementById('phone').value.trim();
-            let pass = document.getElementById('pass').value.trim();
+ <div id="plans"></div>
 
-            if(!phone || !pass || (isReg && !name)) {
-                alert('कृपया सभी जानकारी भरें!');
-                return;
-            }
+ <div class="card">
+  <h3>📋 My Transactions</h3>
+  <div id="history"></div>
+ </div>
+</div>
 
-            let userRef = db.ref('users/' + phone);
+<!-- ADMIN -->
+<div id="admin" class="hidden">
+ <h2>🛠️ Admin Dashboard</h2>
+ <div class="card">
+  <h3>Demo Statistics</h3>
+  <h2 id="totalUsers">Users: 0</h2>
+  <h2 id="totalMoney">Demo Wallet: ₹0</h2>
+ </div>
+ <div class="card">
+  <h3>Registered Users</h3>
+  <div id="usersList"></div>
+ </div>
+ <div class="card">
+  <h3>Demo Transaction Requests</h3>
+  <div id="requests"></div>
+ </div>
+ <button class="danger" onclick="logout()">Logout Admin</button>
+</div>
+</div>
 
-            userRef.once('value', snapshot => {
-                if(isReg) {
-                    if(snapshot.exists()) {
-                        alert('यह नंबर पहले से रजिस्टर है!');
-                        return;
-                    }
-                    let newUser = { name: name, phone: phone, pass: pass, balance: 0 };
-                    userRef.set(newUser).then(() => {
-                        localStorage.setItem('user_phone', phone);
-                        showApp(newUser);
-                    });
-                } else {
-                    if(!snapshot.exists() || snapshot.val().pass !== pass) {
-                        alert('गलत नंबर या पासवर्ड!');
-                        return;
-                    }
-                    localStorage.setItem('user_phone', phone);
-                    showApp(snapshot.val());
-                }
-            });
-        }
+<script>
+// LOCAL DEMO ONLY - NOT A SECURE PRODUCTION DATABASE
+const KEY="lpg_demo_users";
+const REQ="lpg_demo_requests";
+let current=null;
 
-        function showApp(user) {
-            document.getElementById('authBox').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            document.getElementById('displayName').innerText = user.name;
-            document.getElementById('displayBal').innerText = user.balance;
-        }
-
-        function logout() {
-            localStorage.removeItem('user_phone');
-            location.reload();
-        }
-    </script>
+function getUsers(){
+ return JSON.parse(localStorage.getItem(KEY)||"[]");
+}
+function saveUsers(u){
+ localStorage.setItem(KEY,JSON.stringify(u));
+}
+function showAuth(type){
+ document.getElementById("register").classList.toggle("hidden",type!=="register");
+ document.getElementById("login").classList.toggle("hidden",type!=="login");
+}
+function register(){
+ let name=regName.value.trim();
+ let mobile=regMobile.value.trim();
+ let pass=regPass.value;
+ if(!name||!/^\d{10}$/.test(mobile)||pass.length<6){
+  alert("सही नाम, 10 अंकों का मोबाइल और कम से कम 6 अक्षर का पासवर्ड डालें");
+  return;
+ }
+ let u=getUsers();
+ if(u.some(x=>x.mobile===mobile)){
+  alert("यह मोबाइल पहले से रजिस्टर्ड है");return;
+ }
+ u.push({name,mobile,pass,balance:0,plans:[],history:[]});
+ saveUsers(u);
+ alert("Account बन गया! अब Login करें");
+ showAuth("login");
+}
+function login(){
+ let mobile=loginMobile.value.trim();
+ let pass=loginPass.value;
+ if(mobile==="9999999999"&&pass==="admin123"){
+  current="admin";openAdmin();return;
+ }
+ let u=getUsers().find(x=>x.mobile===mobile&&x.pass===pass);
+ if(!u){alert("गलत Login Details");return}
+ current=mobile;openDashboard();
+}
+function logout(){
+ current=null;
+ dashboard.classList.add("hidden");
+ admin.classList.add("hidden");
+ auth.classList.remove("hidden");
+ logoutBtn();
+}
+function logoutBtn(){
+ document.getElementById("logout").classList.add("hidden");
+}
+function openDashboard(){
+ auth.classList.add("hidden");
+ admin.classList.add("hidden");
+ dashboard.classList.remove("hidden");
+ document.getElementById("logout").classList.remove("hidden");
+ render();
+ showPlans("daily");
+}
+function getCurrent(){
+ return getUsers().find(x=>x.mobile===current);
+}
+function updateUser(u){
+ let all=getUsers();
+ let i=all.findIndex(x=>x.mobile===current);
+ all[i]=u;saveUsers(all);
+}
+function render(){
+ let u=getCurrent();if(!u)return;
+ welcome.innerText="Welcome, "+u.name;
+ balance.innerText="₹"+u.balance;
+ history.innerHTML=u.history.slice().reverse().map(x=>
+ `<p>${x}</p>`).join("")||"No Transactions";
+}
+const daily=[
+ ["LPG Daily Plan 1",2250,150,30],
+ ["LPG Daily Plan 2",3000,200,30],
+ ["LPG Daily Plan 3",3750,250,30],
+ ["LPG Daily Plan 4",4500,300,30],
+ ["LPG Daily Plan 5",5250,350,30],
+ ["LPG Daily Plan 6",6000,400,30]
+];
+const hourly=[
+ ["Gas Hourly 1",800,0,1],
+ ["Gas Hourly 2",1200,0,1],
+ ["Gas Hourly 3",1800,0,1]
+];
+function showPlans(type){
+ let u=getCurrent();if(!u)return;
+ let list=type==="daily"?daily:hourly;
+ plans.innerHTML="";
+ list.forEach((p,i)=>{
+ let bought=u.plans.includes(type+"-"+i);
+ let locked=type==="hourly"&&u.plans.filter(x=>x.startsWith("daily-")).length===0;
+ plans.innerHTML+=`
+ <div class="card plan">
+ <div class="gas">${type==="daily"?"🛢️":"🔥"}</div>
+ <div style="flex:1">
+ <b>${p[0]}</b>
+ <div class="price">₹${p[1]}</div>
+ <div class="small">${type==="daily"?"Demo daily rate ₹"+p[2]+" | "+p[3]+" days":"Demo hourly plan"}</div>
+ <button style="margin-top:10px" onclick="buy('${type}',${i})"
+ ${bought||locked?"disabled":""}>
+ ${bought?"Already Selected":locked?"Buy Daily Plan First":"Select Demo Plan"}
+ </button>
+ </div></div>`;
+ });
+}
+function buy(type,i){
+ let u=getCurrent(),list=type==="daily"?daily:hourly,p=list[i];
+ if(u.plans.includes(type+"-"+i))return;
+ if(type==="hourly"&&!u.plans.some(x=>x.startsWith("daily-"))){
+  alert("पहले Daily Plan चुनें");return;
+ }
+ if(u.balance<p[1]){
+  alert("Demo Wallet में पर्याप्त बैलेंस नहीं है");return;
+ }
+ u.balance-=p[1];
+ u.plans.push(type+"-"+i);
+ u.history.push(p[0]+" selected: ₹"+p[1]);
+ updateUser(u);render();showPlans(type);
+}
+function addDemo(){
+ let amount=Number(prompt("Demo amount डालें"));
+ if(!Number.isFinite(amount)||amount<=0||amount>100000)return;
+ let u=getCurrent();
+ u.balance+=amount;
+ u.history.push("Demo balance added: ₹"+amount);
+ updateUser(u);render();
+}
+function withdrawDemo(){
+ let u=getCurrent();
+ let amount=Number(prompt("Demo withdrawal amount (Minimum ₹300)"));
+ if(!Number.isFinite(amount)||amount<300||amount>u.balance){
+  alert("Amount गलत है या Demo Balance कम है");return;
+ }
+ u.balance-=amount;
+ u.history.push("Demo withdrawal: ₹"+amount);
+ updateUser(u);render();
+}
+function openAdmin(){
+ auth.classList.add("hidden");
+ dashboard.classList.add("hidden");
+ admin.classList.remove("hidden");
+ document.getElementById("logout").classList.add("hidden");
+ let u=getUsers();
+ totalUsers.innerText="Users: "+u.length;
+ totalMoney.innerText="Total Demo Wallet: ₹"+u.reduce((s,x)=>s+x.balance,0);
+ usersList.innerHTML="<table><tr><th>Name</th><th>Mobile</th><th>Balance</th><th>Plans</th></tr>"+
+ u.map(x=>`<tr><td>${escapeHTML(x.name)}</td><td>${escapeHTML(x.mobile)}</td><td>₹${x.balance}</td><td>${x.plans.length}</td></tr>`).join("")+"</table>";
+ requests.innerHTML="इस Demo में वास्तविक भुगतान अनुरोध नहीं बनाए जाते।";
+}
+function escapeHTML(s){
+ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+</script>
 </body>
 </html>
