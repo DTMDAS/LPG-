@@ -81,17 +81,17 @@ td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}
   <input id="loginPass" type="password" placeholder="Password">
   <button onclick="login()">Login Now</button>
  </div>
- <p class="small">Demo website: केवल परीक्षण के लिए।</p>
+ <p class="small"> website: केवल परीक्षण के लिए।</p>
 </div>
 
 <!-- USER DASHBOARD -->
 <div id="dashboard" class="hidden">
  <h2 id="welcome">Welcome</h2>
  <div class="wallet">
-  Available Demo Wallet
+  Available Wallet
   <div class="balance" id="balance">₹0</div>
-  <button onclick="addDemo()">+ Add Demo Balance</button>
-  <button class="dark" onclick="withdrawDemo()">Withdraw Demo</button>
+  <button onclick="add()">+ Add Balance</button>
+  <button class="dark" onclick="withdraw()">Withdraw </button>
  </div>
 
  <div class="tabs">
@@ -111,16 +111,16 @@ td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}
 <div id="admin" class="hidden">
  <h2>🛠️ Admin Dashboard</h2>
  <div class="card">
-  <h3>Demo Statistics</h3>
+  <h3> Statistics</h3>
   <h2 id="totalUsers">Users: 0</h2>
-  <h2 id="totalMoney">Demo Wallet: ₹0</h2>
+  <h2 id="totalMoney"> Wallet: ₹0</h2>
  </div>
  <div class="card">
   <h3>Registered Users</h3>
   <div id="usersList"></div>
  </div>
  <div class="card">
-  <h3>Demo Transaction Requests</h3>
+  <h3> Transaction Requests</h3>
   <div id="requests"></div>
  </div>
  <button class="danger" onclick="logout()">Logout Admin</button>
@@ -128,9 +128,9 @@ td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}
 </div>
 
 <script>
-// LOCAL DEMO ONLY - NOT A SECURE PRODUCTION DATABASE
-const KEY="lpg_demo_users";
-const REQ="lpg_demo_requests";
+// LOCAL self ONLY - A SECURE PRODUCTION DATABASE
+const KEY="lpg_users";
+const REQ="lpg_requests";
 let current=null;
 
 function getUsers(){
@@ -229,10 +229,10 @@ function showPlans(type){
  <div style="flex:1">
  <b>${p[0]}</b>
  <div class="price">₹${p[1]}</div>
- <div class="small">${type==="daily"?"Demo daily rate ₹"+p[2]+" | "+p[3]+" days":"Demo hourly plan"}</div>
+ <div class="small">${type==="daily"?"daily rate ₹"+p[2]+" | "+p[3]+" days":"hourly plan"}</div>
  <button style="margin-top:10px" onclick="buy('${type}',${i})"
  ${bought||locked?"disabled":""}>
- ${bought?"Already Selected":locked?"Buy Daily Plan First":"Select Demo Plan"}
+ ${bought?"Already Selected":locked?"Buy Daily Plan First":"Select Plan"}
  </button>
  </div></div>`;
  });
@@ -244,29 +244,29 @@ function buy(type,i){
   alert("पहले Daily Plan चुनें");return;
  }
  if(u.balance<p[1]){
-  alert("Demo Wallet में पर्याप्त बैलेंस नहीं है");return;
+  alert("Wallet में पर्याप्त बैलेंस नहीं है");return;
  }
  u.balance-=p[1];
  u.plans.push(type+"-"+i);
  u.history.push(p[0]+" selected: ₹"+p[1]);
  updateUser(u);render();showPlans(type);
 }
-function addDemo(){
- let amount=Number(prompt("Demo amount डालें"));
+function add(){
+ let amount=Number(prompt("amount डालें"));
  if(!Number.isFinite(amount)||amount<=0||amount>100000)return;
  let u=getCurrent();
  u.balance+=amount;
- u.history.push("Demo balance added: ₹"+amount);
+ u.history.push("balance added: ₹"+amount);
  updateUser(u);render();
 }
-function withdrawDemo(){
+function withdraw upi (){
  let u=getCurrent();
- let amount=Number(prompt("Demo withdrawal amount (Minimum ₹300)"));
+ let amount=Number(prompt("upi withdrawal amount (Minimum ₹300)"));
  if(!Number.isFinite(amount)||amount<300||amount>u.balance){
-  alert("Amount गलत है या Demo Balance कम है");return;
+  alert("Amount गलत है या Balance कम है");return;
  }
  u.balance-=amount;
- u.history.push("Demo withdrawal: ₹"+amount);
+ u.history.push("upi withdrawal: ₹"+amount);
  updateUser(u);render();
 }
 function openAdmin(){
@@ -276,10 +276,10 @@ function openAdmin(){
  document.getElementById("logout").classList.add("hidden");
  let u=getUsers();
  totalUsers.innerText="Users: "+u.length;
- totalMoney.innerText="Total Demo Wallet: ₹"+u.reduce((s,x)=>s+x.balance,0);
+ totalMoney.innerText="Total Wallet: ₹"+u.reduce((s,x)=>s+x.balance,0);
  usersList.innerHTML="<table><tr><th>Name</th><th>Mobile</th><th>Balance</th><th>Plans</th></tr>"+
  u.map(x=>`<tr><td>${escapeHTML(x.name)}</td><td>${escapeHTML(x.mobile)}</td><td>₹${x.balance}</td><td>${x.plans.length}</td></tr>`).join("")+"</table>";
- requests.innerHTML="इस Demo में वास्तविक भुगतान अनुरोध नहीं बनाए जाते।";
+ requests.innerHTML="इस में वास्तविक भुगतान अनुरोध नहीं बनाए जाते।";
 }
 function escapeHTML(s){
  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
