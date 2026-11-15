@@ -34,33 +34,40 @@
     <div class="header">
         <div>
             <h2>🔥 LPG Gas Admin Panel</h2>
-            <small>Live Database Management</small>
+            <small>Full Control Panel</small>
         </div>
         <a href="index.html" style="color:white; background:#d90429; padding:8px 12px; border-radius:6px; text-decoration:none; font-weight:bold;">Go to Website</a>
     </div>
 
+    <!-- Theme & Logo Settings -->
     <div class="card">
-        <h3>1. Update Payment QR & UPI ID</h3>
-        <div class="input-group">
-            <label>Admin UPI ID</label>
-            <input type="text" id="adminUpiInput" placeholder="merchant@upi">
-        </div>
-        <div class="input-group">
-            <label>QR Code Image URL</label>
-            <input type="text" id="adminQrUrlInput" placeholder="https://link-to-qr.jpg">
-        </div>
+        <h3>1. Website Theme, Logo & News Settings</h3>
+        <div class="input-group"><label>Website Title</label><input type="text" id="setSiteTitle"></div>
+        <div class="input-group"><label>Header Brand Name</label><input type="text" id="setHeaderTitle"></div>
+        <div class="input-group"><label>Header Subtitle</label><input type="text" id="setHeaderSub"></div>
+        <div class="input-group"><label>Important News Text</label><input type="text" id="setNewsText"></div>
+        <div class="input-group"><label>News Image URL (Optional)</label><input type="text" id="setNewsImg"></div>
+        <button class="btn btn-primary" onclick="saveThemeSettings()">Save Theme & News</button>
+    </div>
+
+    <!-- QR & UPI Settings -->
+    <div class="card">
+        <h3>2. Payment QR Code & Name Settings</h3>
+        <div class="input-group"><label>QR Code Image URL</label><input type="text" id="adminQrUrlInput"></div>
+        <div class="input-group"><label>QR ke niche likhne ke liye Name (उदा: Scan & Pay to LPG India)</label><input type="text" id="adminQrLabelInput"></div>
         <button class="btn btn-primary" onclick="saveQrSettings()">Save QR Settings</button>
     </div>
 
+    <!-- Recharge & Withdrawal Requests -->
     <div class="card" style="overflow-x:auto;">
-        <h3>2. Recharge & Withdrawal Requests</h3>
+        <h3>3. Recharge & Withdrawal Requests (With SS)</h3>
         <table>
             <thead>
                 <tr>
                     <th>User</th>
                     <th>Type</th>
                     <th>Amount</th>
-                    <th>Details</th>
+                    <th>Details / SS</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -69,15 +76,32 @@
         </table>
     </div>
 
+    <!-- Live Support Chat Manager -->
+    <div class="card">
+        <h3>4. Live Support Chat with Users</h3>
+        <div class="input-group">
+            <label>Select User Phone to Chat:</label>
+            <select id="supportUserSelect" onchange="loadAdminChat()" style="width:100%; padding:10px; border-radius:6px;"></select>
+        </div>
+        <div style="background:#fafafa; border:1px solid #ddd; height:200px; overflow-y:auto; padding:10px; border-radius:6px; margin-bottom:10px;" id="adminChatArea"></div>
+        <div style="display:flex; gap:8px;">
+            <input type="text" id="adminReplyInput" placeholder="Admin reply..." style="flex:1; padding:10px; border:1px solid #ccc; border-radius:6px;">
+            <button class="btn btn-primary" style="width:90px;" onclick="sendAdminReply()">Reply</button>
+        </div>
+    </div>
+
+    <!-- Registered Users List (ID, Pass, Name, Email, Balance) -->
     <div class="card" style="overflow-x:auto;">
-        <h3>3. Registered Users Log</h3>
+        <h3>5. Registered Users Database</h3>
         <table>
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Mobile</th>
+                    <th>Email</th>
+                    <th>Password</th>
                     <th>Balance</th>
-                    <th>Plans</th>
+                    <th>Active Plans</th>
                 </tr>
             </thead>
             <tbody id="usersTableBody"></tbody>
@@ -86,33 +110,43 @@
 
     <script>
         window.onload = () => {
-            db.ref('admin/qrSettings').on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    document.getElementById('adminUpiInput').value = data.upiId || '';
-                    document.getElementById('adminQrUrlInput').value = data.qrUrl || '';
-                }
+            db.ref('admin/settings').on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                document.getElementById('setSiteTitle').value = data.siteTitle || '';
+                document.getElementById('setHeaderTitle').value = data.headerTitle || '';
+                document.getElementById('setHeaderSub').value = data.headerSub || '';
+                document.getElementById('setNewsText').value = data.newsText || '';
+                document.getElementById('setNewsImg').value = data.newsImg || '';
+                document.getElementById('adminQrUrlInput').value = data.qrUrl || '';
+                document.getElementById('adminQrLabelInput').value = data.qrLabel || '';
             });
             loadTransactions();
             loadUsers();
+            loadSupportUsersList();
         };
 
+        function saveThemeSettings() {
+            db.ref('admin/settings').update({
+                siteTitle: document.getElementById('setSiteTitle').value,
+                headerTitle: document.getElementById('setHeaderTitle').value,
+                headerSub: document.getElementById('setHeaderSub').value,
+                newsText: document.getElementById('setNewsText').value,
+                newsImg: document.getElementById('setNewsImg').value
+            }).then(() => alert('Theme & News Updated Successfully!'));
+        }
+
         function saveQrSettings() {
-            const upiId = document.getElementById('adminUpiInput').value.trim();
-            const qrUrl = document.getElementById('adminQrUrlInput').value.trim();
-            db.ref('admin/qrSettings').set({ upiId, qrUrl }).then(() => {
-                alert('QR Settings Updated Successfully!');
-            });
+            db.ref('admin/settings').update({
+                qrUrl: document.getElementById('adminQrUrlInput').value,
+                qrLabel: document.getElementById('adminQrLabelInput').value
+            }).then(() => alert('QR Settings Updated Successfully!'));
         }
 
         function loadTransactions() {
             db.ref('transactions').on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('txTableBody');
-                if (!data) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No requests.</td></tr>';
-                    return;
-                }
+                if (!data) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No requests.</td></tr>'; return; }
                 let html = '';
                 Object.keys(data).forEach(key => {
                     let t = data[key];
@@ -121,7 +155,7 @@
                         <td><b>${t.userName}</b><br><small>${t.userPhone}</small></td>
                         <td><b style="color:${t.type === 'Recharge' ? 'green' : '#d90429'}">${t.type}</b></td>
                         <td>₹${t.amount}</td>
-                        <td>${t.details}</td>
+                        <td>${t.details}<br>${t.screenshot ? `<a href="${t.screenshot}" target="_blank" style="color:blue; font-weight:bold;">[View SS]</a>` : ''}</td>
                         <td><span class="badge ${t.status.toLowerCase()}">${t.status}</span></td>
                         <td>
                             ${t.status === 'Pending' ? `
@@ -137,16 +171,13 @@
 
         function processTx(txId, status, userPhone, amount, type) {
             db.ref('transactions/' + txId).update({ status: status });
-
             if (status === 'Approved' && type === 'Recharge') {
-                db.ref('users/' + userPhone + '/balance').once('value', (snapshot) => {
-                    let currentBal = snapshot.val() || 0;
-                    db.ref('users/' + userPhone).update({ balance: currentBal + amount });
+                db.ref('users/' + userPhone + '/balance').once('value', (s) => {
+                    db.ref('users/' + userPhone).update({ balance: (s.val() || 0) + amount });
                 });
             } else if (status === 'Rejected' && type === 'Withdraw') {
-                db.ref('users/' + userPhone + '/balance').once('value', (snapshot) => {
-                    let currentBal = snapshot.val() || 0;
-                    db.ref('users/' + userPhone).update({ balance: currentBal + amount });
+                db.ref('users/' + userPhone + '/balance').once('value', (s) => {
+                    db.ref('users/' + userPhone).update({ balance: (s.val() || 0) + amount });
                 });
             }
             alert('Request ' + status);
@@ -156,22 +187,56 @@
             db.ref('users').on('value', (snapshot) => {
                 const data = snapshot.val();
                 const tbody = document.getElementById('usersTableBody');
-                if (!data) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No users registered.</td></tr>';
-                    return;
-                }
+                if (!data) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No users registered.</td></tr>'; return; }
                 let html = '';
                 Object.values(data).forEach(u => {
-                    let planNames = (u.purchasedPlans || []).map(p => p.name).join(', ') || 'None';
-                    html += `
-                    <tr>
-                        <td><b>${u.name}</b></td>
-                        <td>${u.phone}</td>
-                        <td><b>₹${u.balance || 0}</b></td>
-                        <td>${planNames}</td>
-                    </tr>`;
+                    let plans = (u.purchasedPlans || []).map(p => p.name).join(', ') || 'None';
+                    html += `<tr><td><b>${u.name}</b></td><td>${u.phone}</td><td>${u.email || '-'}</td><td>${u.pass}</td><td><b>₹${u.balance || 0}</b></td><td>${plans}</td></tr>`;
                 });
                 tbody.innerHTML = html;
+            });
+        }
+
+        function loadSupportUsersList() {
+            db.ref('supportChats').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const sel = document.getElementById('supportUserSelect');
+                if (!data) { sel.innerHTML = '<option>No chat available</option>'; return; }
+                let html = '<option value="">-- Select User to Chat --</option>';
+                Object.keys(data).forEach(phone => {
+                    html += `<option value="${phone}">User: ${phone}</option>`;
+                });
+                sel.innerHTML = html;
+            });
+        }
+
+        function loadAdminChat() {
+            const phone = document.getElementById('supportUserSelect').value;
+            if (!phone) return;
+            db.ref('supportChats/' + phone).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const area = document.getElementById('adminChatArea');
+                if (!data) { area.innerHTML = 'No messages.'; return; }
+                let html = '';
+                Object.values(data).forEach(m => {
+                    html += `<div><b>${m.name} (${m.sender}):</b> ${m.message} <small style="color:#888;">${m.time}</small></div><br>`;
+                });
+                area.innerHTML = html;
+            });
+        }
+
+        function sendAdminReply() {
+            const phone = document.getElementById('supportUserSelect').value;
+            const txt = document.getElementById('adminReplyInput').value.trim();
+            if (!phone || !txt) return;
+
+            db.ref('supportChats/' + phone).push({
+                sender: 'admin',
+                name: 'Admin',
+                message: txt,
+                time: new Date().toLocaleTimeString()
+            }).then(() => {
+                document.getElementById('adminReplyInput').value = '';
             });
         }
     </script>
